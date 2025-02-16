@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blogger Sitemap Generator | SEO Optimized</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --success: #27ae60;
+            --error: #c0392b;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sitemap-generator {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .control-panel {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+
+        .preview-panel {
+            background: #2c3e50;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        .seo-options {
+            display: grid;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .option-group {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 6px;
+        }
+
+        input[type="url"], select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 0.5rem 0;
+        }
+
+        .generate-btn {
+            background: var(--secondary);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .sitemap-preview {
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .highlight {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        /* Input validation states */
+        .input-wrapper {
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .validation-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            background-size: contain;
+            opacity: 0;
+        }
+
+        input:valid + .validation-icon {
+            background-image: url('checkmark.svg');
+            opacity: 1;
+        }
+
+        input:invalid + .validation-icon {
+            background-image: url('warning.svg');
+            opacity: 1;
+        }
+
+        /* Card hover effects */
+        .option-group {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .option-group:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sitemap-generator {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            
+            .preview-panel {
+                order: -1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sitemap-generator">
+        <div class="control-panel">
+            <h2>🔧 Sitemap Configuration</h2>
+            
+            <div class="input-group">
+                <label for="blogUrl">🌐 Blog URL</label>
+                <div class="input-wrapper">
+                    <input type="url" id="blogUrl" placeholder="https://yourblog.blogspot.com">
+                    <span class="validation-icon"></span>
+                </div>
+                <div class="error-message" id="urlError"></div>
+            </div>
+
+            <div class="option-group visual-group">
+                <h3><span class="icon">📈</span> SEO Configuration</h3>
+                <div class="checkbox-grid">
+                    <label class="checkbox-card">
+                        <input type="checkbox" checked>
+                        <span class="checkmark"></span>
+                        <span class="label-text">Last Modified Dates</span>
+                        <span class="tooltip">Include automatic last modified timestamps</span>
+                    </label>
+                    <label><input type="checkbox" checked> Add Priority Tags</label>
+                    <label><input type="checkbox"> Include Image Sitemap</label>
+                </div>
+            </div>
+
+            <div class="option-group visual-group">
+                <h3><span class="icon">🗂</span> Content Types</h3>
+                <div class="select-wrapper">
+                    <select id="contentType" multiple>
+                        <option>📝 Blog Posts</option>
+                        <option>📄 Static Pages</option>
+                        <option>📁 Categories</option>
+                        <option>🏷 Tag Archives</option>
+                    </select>
+                    <div class="search-box">
+                        <input type="text" placeholder="Search content types...">
+                    </div>
+                </div>
+            </div>
+
+            <button class="generate-btn" onclick="generateSitemap()">
+                🚀 Generate Sitemap
+            </button>
+        </div>
+
+        <div class="preview-panel">
+            <div class="preview-header">
+                <h2>👁️ XML Preview</h2>
+                <div class="preview-actions">
+                    <button class="icon-button" id="copyBtn" title="Copy to Clipboard">📋</button>
+                    <button class="icon-button" id="downloadBtn" title="Download File">⤓</button>
+                </div>
+            </div>
+            <div class="sitemap-preview" id="preview">
+                <!-- Sitemap preview will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('copyBtn').addEventListener('click', copySitemap);
+        document.getElementById('downloadBtn').addEventListener('click', downloadSitemap);
+
+        function copySitemap() {
+            const content = document.getElementById('preview').textContent;
+            navigator.clipboard.writeText(content)
+                .then(() => showMessage('Copied to clipboard!'))
+                .catch(err => showMessage('Failed to copy!', true));
+        }
+
+        function downloadSitemap() {
+            const content = document.getElementById('preview').textContent;
+            const blob = new Blob([content], { type: 'application/xml' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sitemap-${new Date().toISOString().split('T')[0]}.xml`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        let currentSitemap = '';
+        function generateSitemap() {
+            const blogUrl = document.getElementById('blogUrl').value;
+            currentSitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>${blogUrl}</loc>
+        <lastmod>${new Date().toISOString()}</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+    </url>
+</urlset>`;
+
+            document.getElementById('preview').innerHTML = syntaxHighlight(currentSitemap);
+        }
+
+        function syntaxHighlight(xml) {
+            return xml.replace(/</g, '&lt;')
+                     .replace(/(&lt;\/?\w+)/g, '<span class="highlight">$1</span>');
+        }
+
+        function showMessage(message, isError = false) {
+            const msg = document.createElement('div');
+            msg.textContent = message;
+            msg.style.position = 'fixed';
+            msg.style.bottom = '20px';
+            msg.style.right = '20px';
+            msg.style.padding = '1rem';
+            msg.style.background = isError ? '#e74c3c' : '#2ecc71';
+            msg.style.color = 'white';
+            msg.style.borderRadius = '4px';
+            document.body.appendChild(msg);
+            
+            setTimeout(() => msg.remove(), 2000);
+        }
+    </script>
+</body>
+</html> 
